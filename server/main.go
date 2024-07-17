@@ -4,8 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"io/ioutil"
 	"log"
@@ -57,8 +56,7 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Request Iniciada")
 
-	apiCtx, apiCancel := context.WithTimeout(ctx, 4000*time.Millisecond)
-	//apiCtx, apiCancel := context.WithTimeout(ctx, 200*time.Millisecond)
+	apiCtx, apiCancel := context.WithTimeout(ctx, 200*time.Millisecond)
 	defer apiCancel()
 	cotacaoJson, err := findCotacaoFromApi(apiCtx)
 
@@ -82,8 +80,7 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
 		CreateDate: cotacaoJson.USDBRL.CreateDate,
 	}
 
-	//dbCtx, dbCancel := context.WithTimeout(ctx, 10*time.Millisecond)
-	dbCtx, dbCancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	dbCtx, dbCancel := context.WithTimeout(ctx, 10*time.Millisecond)
 	defer dbCancel()
 
 	if err := saveCotacaoToDb(dbCtx, cotacao); err != nil {
@@ -130,8 +127,7 @@ func findCotacaoFromApi(ctx context.Context) (CotacaoJson, error) {
 }
 
 func saveCotacaoToDb(ctx context.Context, cotacao Cotacao) error {
-	dsn := "root:root@tcp(localhost:3306)/goexpert?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("./data/database.db"), &gorm.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %w", err)
 	}
